@@ -63,8 +63,6 @@ public:
                     int light_id);
 
 private:
-  virtual void setup_shadow_map();
-
   // This is the data that must be cycled between pipeline stages.
   class EXPCL_PANDA_PGRAPHNODES CData : public CycleData {
   public:

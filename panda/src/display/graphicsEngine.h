@@ -166,8 +166,10 @@ private:
   void do_draw(GraphicsOutput *win, GraphicsStateGuardian *gsg,
                DisplayRegion *dr, Thread *current_thread);
 
-  void do_add_window(GraphicsOutput *window);
-  void do_add_gsg(GraphicsStateGuardian *gsg, GraphicsPipe *pipe);
+  void do_add_window(GraphicsOutput *window,
+                     const GraphicsThreadingModel &threading_model);
+  void do_add_gsg(GraphicsStateGuardian *gsg, GraphicsPipe *pipe,
+                  const GraphicsThreadingModel &threading_model);
   void do_remove_window(GraphicsOutput *window, Thread *current_thread);
   void do_resort_windows();
   void terminate_threads(Thread *current_thread);
@@ -306,11 +308,8 @@ private:
   Pipeline *_pipeline;
   Windows _windows;
   bool _windows_sorted;
-
-  // This lock protects the next two fields.
-  Mutex _new_windows_lock;
   unsigned int _window_sort_index;
-  pvector<PT(GraphicsOutput)> _new_windows;
+  bool _needs_open_windows;
 
   WindowRenderer _app;
   typedef pmap<string, PT(RenderThread) > Threads;

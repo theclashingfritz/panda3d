@@ -41,9 +41,6 @@ set_shadow_caster(bool caster) {
   }
   _shadow_caster = caster;
   set_active(caster);
-  if (caster) {
-    setup_shadow_map();
-  }
 }
 
 /**
@@ -68,17 +65,6 @@ set_shadow_caster(bool caster, int buffer_xsize, int buffer_ysize, int buffer_so
     _sb_sort = buffer_sort;
   }
   set_active(caster);
-  if (caster) {
-    setup_shadow_map();
-  }
-}
-
-/**
- * Returns the sort of the shadow buffer to be created for this light source.
- */
-INLINE int LightLensNode::
-get_shadow_buffer_sort() const {
-  return _sb_sort;
 }
 
 /**
@@ -96,9 +82,8 @@ INLINE void LightLensNode::
 set_shadow_buffer_size(const LVecBase2i &size) {
   if (size != _sb_size) {
     clear_shadow_buffers();
-    _sb_size = size;
-    setup_shadow_map();
   }
+  _sb_size = size;
 }
 
 /**
