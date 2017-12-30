@@ -293,8 +293,7 @@ private:
   class EXPCL_PANDA_GOBJ CData : public CycleData {
   public:
     INLINE CData();
-    INLINE CData(const GeomVertexFormat *format, UsageHint usage_hint);
-
+    INLINE CData(const CData &copy);
     ALLOC_DELETED_CHAIN(CData);
     virtual CycleData *make_copy() const;
     virtual void write_datagram(BamWriter *manager, Datagram &dg) const;

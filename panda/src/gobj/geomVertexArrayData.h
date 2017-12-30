@@ -150,8 +150,7 @@ private:
   // This is the data that must be cycled between pipeline stages.
   class EXPCL_PANDA_GOBJ CData : public CycleData {
   public:
-    INLINE CData(UsageHint usage_hint = UH_unspecified);
-    INLINE CData(CData &&from) NOEXCEPT;
+    INLINE CData();
     INLINE CData(const CData &copy);
     INLINE void operator = (const CData &copy);
 
