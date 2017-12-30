@@ -491,10 +491,16 @@ class DistributedObject(DistributedObjectBase):
         self.setLocation(parentId, zoneId)
 
     def d_setLocation(self, parentId, zoneId):
-        self.cr.sendSetLocation(self.doId, parentId, zoneId)
+        if base.cr:
+            base.cr.sendSetLocation(self.doId, parentId, zoneId)
+        else:
+            self.notify.warning("Failed to send setLocation! base.cr is not present!")
 
     def setLocation(self, parentId, zoneId):
-        self.cr.storeObjectLocation(self, parentId, zoneId)
+        if base.cr:
+            base.cr.storeObjectLocation(self, parentId, zoneId)
+        else:
+            self.notify.warning("Failed to setLocation! base.cr is not present!")
 
     def getLocation(self):
         try:

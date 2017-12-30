@@ -253,7 +253,10 @@ def ProgressOutput(progress, msg, target = None):
     else:
         suffix = GetColor()
 
-    print(''.join((prefix, msg, suffix)))
+    try:
+        print(''.join((prefix, msg, suffix)))
+    except:
+        pass
     sys.stdout.flush()
     sys.stderr.flush()
 
