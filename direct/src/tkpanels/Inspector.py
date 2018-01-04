@@ -35,7 +35,7 @@ def inspectorFor(anObject):
 
 def initializeInspectorMap():
     global _InspectorMap
-    notFinishedTypes = ['BufferType',  'EllipsisType',  'FrameType', 'TracebackType', 'XRangeType']
+    notFinishedTypes = ['BufferType',  'EllipsisType',  'FrameType', 'TracebackType', 'rangeType']
 
     _InspectorMap = {
         'Builtin_function_or_methodType': 'FunctionInspector',

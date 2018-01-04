@@ -84,7 +84,7 @@ class GraphEditorWindow(wx.Window):
     """
     This is the main graph editor window.
     """
-    def __init__(self, parent, windowSize, property, xRange, yRange, curFrame, object):
+    def __init__(self, parent, windowSize, property, range, yRange, curFrame, object):
         wx.Window.__init__(self, parent, size = windowSize, style = wx.SUNKEN_BORDER)
 
         self._mainDialog = wx.GetTopLevelParent(self)
@@ -102,7 +102,7 @@ class GraphEditorWindow(wx.Window):
 
         self.zeroPos = (float(0), self.h/float(2))
         self.zero = 0
-        self.unitWidth = self.w/float(xRange)
+        self.unitWidth = self.w/float(range)
         self.unitHeight = self.h/float(yRange)
 
         self.generateInfo()
@@ -793,7 +793,7 @@ class GraphEditorUI(wx.Dialog):
         self.editor = editor
         self.editor.GRAPH_EDITOR = True
         self.object = object
-        self.xRange = 24+1
+        self.range = 24+1
         self.yRange = 50
         if self.editor.mode == self.editor.ANIM_MODE:
             self.curFrame = self.editor.ui.animUI.curFrame
@@ -821,7 +821,7 @@ class GraphEditorUI(wx.Dialog):
         self.tree.SelectItem(self.root,select=True)
         self.str = self.tree.GetItemText(self.root)
 
-        self.graphEditorWindow =GraphEditorWindow(self.mainPanel2, wx.Size(500, 450), str(object[OG.OBJ_DEF].name), self.xRange, self.yRange, self.curFrame, self.object)
+        self.graphEditorWindow =GraphEditorWindow(self.mainPanel2, wx.Size(500, 450), str(object[OG.OBJ_DEF].name), self.range, self.yRange, self.curFrame, self.object)
 
         self.SetProperties()
         self.DoLayout()

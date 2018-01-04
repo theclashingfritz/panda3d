@@ -106,7 +106,7 @@ def parseManualTree(node):
         if e.nodeType == Node.ELEMENT_NODE:
             if e.localName == "ol":
                 assert lastadded != None
-                for i in xrange(len(result)):
+                for i in range(len(result)):
                     if result[i][:2] == lastadded:
                         result[i] = lastadded + (parseManualTree(e),)
             elif e.localName == "a":

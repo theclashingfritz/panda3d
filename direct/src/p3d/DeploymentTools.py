@@ -22,7 +22,7 @@ except ImportError:
     pwd = None
 
 if sys.version_info >= (3, 0):
-    xrange = range
+    range = range
     from io import BytesIO, TextIOWrapper
 else:
     from io import BytesIO
@@ -367,14 +367,14 @@ class Icon:
             if bpp == 24:
                 # Align rows to 4-byte boundary
                 rowalign = '\0' * (-(size * 3) & 3)
-                for y in xrange(size):
-                    for x in xrange(size):
+                for y in range(size):
+                    for x in range(size):
                         r, g, b = image.getXel(x, size - y - 1)
                         ico.write(struct.pack('<BBB', int(b * 255), int(g * 255), int(r * 255)))
                     ico.write(rowalign)
             else:
-                for y in xrange(size):
-                    for x in xrange(size):
+                for y in range(size):
+                    for x in range(size):
                         r, g, b, a = image.getXelA(x, size - y - 1)
                         ico.write(struct.pack('<BBBB', int(b * 255), int(g * 255), int(r * 255), int(a * 255)))
 
@@ -430,8 +430,8 @@ class Icon:
                 icns.write(icon_types[size])
                 icns.write(struct.pack('>I', size * size * 4 + 8))
 
-                for y in xrange(size):
-                    for x in xrange(size):
+                for y in range(size):
+                    for x in range(size):
                         r, g, b = image.getXel(x, y)
                         icns.write(struct.pack('>BBBB', 0, int(r * 255), int(g * 255), int(b * 255)))
 
@@ -440,8 +440,8 @@ class Icon:
                 icns.write(mask_types[size])
                 icns.write(struct.pack('>I', size * size + 8))
 
-                for y in xrange(size):
-                    for x in xrange(size):
+                for y in range(size):
+                    for x in range(size):
                         icns.write(struct.pack('<B', int(image.getAlpha(x, y) * 255)))
 
         length = icns.tell()

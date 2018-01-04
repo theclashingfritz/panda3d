@@ -149,7 +149,7 @@ class AstronDatabaseInterface:
             unpacker = DCPacker()
             unpacker.setUnpackData(di.getRemainingBytes())
             fields = {}
-            for x in xrange(fieldCount):
+            for x in range(fieldCount):
                 fieldId = unpacker.rawUnpackInt16()
                 field = dclass.getFieldByIndex(fieldId)
 
@@ -276,7 +276,7 @@ class AstronDatabaseInterface:
             unpacker = DCPacker()
             unpacker.setUnpackData(di.getRemainingBytes())
             fields = {}
-            for x in xrange(fieldCount):
+            for x in range(fieldCount):
                 fieldId = unpacker.rawUnpackInt16()
                 field = self.air.getDcFile().getFieldByIndex(fieldId)
 
