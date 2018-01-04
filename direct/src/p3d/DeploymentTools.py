@@ -22,7 +22,7 @@ except ImportError:
     pwd = None
 
 if sys.version_info >= (3, 0):
-    range = range
+    xrange = range
     from io import BytesIO, TextIOWrapper
 else:
     from io import BytesIO

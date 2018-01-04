@@ -13,7 +13,7 @@ import sys
 GarbageCycleCountAnnounceEvent = 'announceGarbageCycleDesc2num'
 
 if sys.version_info >= (3, 0):
-    range = range
+    xrange = range
 
 class FakeObject:
     pass

@@ -46,7 +46,7 @@ from panda3d.core import ConfigVariableBool
 
 if sys.version_info >= (3, 0):
     import builtins
-    range = range
+    xrange = range
 else:
     import __builtin__ as builtins
 
