@@ -20,6 +20,7 @@
  */
 WeakReferenceList::
 WeakReferenceList() {
+
 }
 
 /**
