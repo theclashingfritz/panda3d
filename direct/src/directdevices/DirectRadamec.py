@@ -38,7 +38,7 @@ class DirectRadamec(DirectObject):
         #        you unplug the radamec cords, or jostle them too
         #        much.  For best results, re-record these values often.
         self.minRange = [-180.0, -90, 522517.0, 494762.0]
-        self.marange = [180.0, 90, 547074.0, 533984.0]
+        self.maxRange = [180.0, 90, 547074.0, 533984.0]
         # Spawn update task
         self.enable()
 
@@ -74,10 +74,10 @@ class DirectRadamec(DirectObject):
     # max/min numbers of the Radamec device
     def normalizeChannel(self, chan, minVal = -1, maxVal = 1):
         try:
-            marange = self.marange[chan]
+            maxRange = self.maxRange[chan]
             minRange = self.minRange[chan]
         except IndexError:
             raise RuntimeError("can't normalize this channel (channel %d)" % chan)
-        range = marange - minRange
-        clampedVal = CLAMP(self.aList[chan], minRange, marange)
+        range = maxRange - minRange
+        clampedVal = CLAMP(self.aList[chan], minRange, maxRange)
         return ((maxVal - minVal) * (clampedVal - minRange) / range) + minVal
