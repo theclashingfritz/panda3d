@@ -19,12 +19,7 @@
  *
  */
 WeakReferenceList::
-<<<<<<< HEAD
-WeakReferenceList() {
-
-=======
 WeakReferenceList() : _count(_alive_offset) {
->>>>>>> 183d66a5c2620034854a79e2e2e3b6f78f7e59f9
 }
 
 /**
