@@ -116,7 +116,9 @@ PUBLISHED:
                               PyObject *optional_fields) const;
   Datagram client_format_generate_CMU(PyObject *distobj, DOID_TYPE do_id,
                                       ZONEID_TYPE zone_id, PyObject *optional_fields) const;
-									 
+
+#endif
+
 public:
   virtual void output(std::ostream &out, bool brief) const;
   virtual void write(std::ostream &out, bool brief, int indent_level) const;
