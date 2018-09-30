@@ -5,9 +5,13 @@ matrix:
     - compiler: clang
       env: PYTHONV=python3 FLAGS=--installer
     - compiler: clang
-      env: PYTHONV=python2.7 FLAGS=--override=STDFLOAT_DOUBLE=1
+      env: PYTHONV=python3 FLAGS=--optimize=4 --installer
+    - compiler: clang
+      env: PYTHONV=python2.7 FLAGS=--override=STDFLOAT_DOUBLE=1 --installer
     - compiler: gcc
-      env: PYTHONV=python2.7 FLAGS=--optimize=4
+      env: PYTHONV=python2.7 FLAGS=--installer
+    - compiler: gcc
+      env: PYTHONV=python2.7 FLAGS=--optimize=4 --installer
       before_install:
         - export CC=gcc-4.7
         - export CXX=g++-4.7
