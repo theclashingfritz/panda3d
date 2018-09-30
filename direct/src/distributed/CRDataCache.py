@@ -1,7 +1,6 @@
 from direct.distributed.CachedDOData import CachedDOData
 from panda3d.core import ConfigVariableInt
 
-
 # This has to be imported for __builtin__.config
 from direct.showbase import ShowBase
 

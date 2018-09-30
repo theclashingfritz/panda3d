@@ -273,7 +273,7 @@ class DistributedObjectUD(DistributedObjectBase):
 
     def GetAccountConnectionChannel(self, doId):
         return doId + (1003L << 32)
-
+		
     def GetAccountIDFromChannelCode(self, channel):
         return channel >> 32
 
