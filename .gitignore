@@ -36,6 +36,7 @@ vgcore.*
 /*.dmg
 /*.whl
 /*.txz
+/*.zip
 
 # CMake
 /build/
