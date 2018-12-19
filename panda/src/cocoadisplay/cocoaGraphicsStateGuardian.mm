@@ -134,6 +134,12 @@ get_properties(FrameBufferProperties &properties, NSOpenGLPixelFormat* pixel_for
   if (accelerated) {
     properties.set_force_hardware(1);
   }
+
+  // Cautiously setting this to true.  It appears that macOS framebuffers are
+  // sRGB-capable, but I don't really know how to verify this.
+  if (color_size == 32 && !color_float) {
+    properties.set_srgb_color(true);
+  }
 }
 
 /**
@@ -247,6 +253,11 @@ choose_pixel_format(const FrameBufferProperties &properties,
   cocoadisplay_cat.debug() <<
     "Pixel format has " << [format numberOfVirtualScreens] << " virtual screens.\n";
   get_properties(_fbprops, format, 0);
+
+  // Don't enable sRGB unless it was explicitly requested.
+  if (!properties.get_srgb_color()) {
+    _fbprops.set_srgb_color(false);
+  }
 
   // TODO: print out renderer
 
