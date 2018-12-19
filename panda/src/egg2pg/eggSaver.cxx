@@ -159,6 +159,12 @@ convert_node(const WorkingNodePath &node_path, EggGroupNode *egg_parent,
     convert_character_node(DCAST(Character, node), node_path, egg_parent, has_decal);
 
   } else {
+    // Just a generic node.
+    EggGroup *egg_group = new EggGroup(node->get_name());
+    egg_parent->add_child(egg_group);
+    apply_node_properties(egg_group, node);
+    
+    
     // Is this a ModelNode that represents an exposed joint?  If so, skip it,
     // as we'll take care of it when building the joint hierarchy.
     if (node->get_type() == ModelNode::get_class_type()) {
@@ -168,11 +174,6 @@ convert_node(const WorkingNodePath &node_path, EggGroupNode *egg_parent,
         return;
       }
     }
-
-    // Just a generic node.
-    EggGroup *egg_group = new EggGroup(node->get_name());
-    egg_parent->add_child(egg_group);
-    apply_node_properties(egg_group, node);
 
     recurse_nodes(node_path, egg_group, has_decal, joint_map);
   }
@@ -369,6 +370,7 @@ convert_character_bundle(PartGroup *bundleNode, EggGroupNode *egg_parent, Charac
     joint->add_matrix4(transformd);
     joint->set_group_type(EggGroup::GT_joint);
 
+    
     // Is this joint exposed?
     NodePathCollection coll = character_joint->get_net_transforms();
     for (size_t i = 0; i < coll.size(); ++i) {
@@ -419,7 +421,6 @@ convert_character_node(Character *node, const WorkingNodePath &node_path,
   int num_children = node->get_num_children();
   for (int i = 0; i < num_children; i++) {
     PandaNode *child = node->get_child(i);
-    convert_node(WorkingNodePath(node_path, child), egg_parent, has_decal, &joint_map);
 
     TypeHandle type = child->get_type();
     if (child->get_num_children() > 0 ||
@@ -436,6 +437,8 @@ convert_character_node(Character *node, const WorkingNodePath &node_path,
   } else {
     egg_group->set_dart_type(EggGroup::DT_default);
   }
+  
+  recurse_nodes(node_path, egg_group, has_decal, &joint_map);
 
   // turn it into a switch.. egg_group->set_switch_flag(true);
 
