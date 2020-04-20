@@ -2822,6 +2822,31 @@ class PriorityCallbacks:
     def __call__(self):
         for priority, callback in self._callbacks:
             callback()
+            
+def repeatableRepr(obj):
+    if type(obj) is types.DictType:
+        keys = obj.keys()
+        keys.sort()
+        s = '{'
+        for i in xrange(len(keys)):
+            key = keys[i]
+            s += repeatableRepr(key)
+            s += ': '
+            s += repeatableRepr(obj[key])
+            if i < len(keys) - 1:
+                s += ', '
+
+        s += '}'
+        return s
+    else:
+        if type(obj) is type(set()):
+            l = []
+            for item in obj:
+                l.append(item)
+
+            l.sort()
+            return repeatableRepr(l)
+    return repr(obj)
 
 builtins.Functor = Functor
 builtins.Stack = Stack
@@ -2871,5 +2896,6 @@ builtins.deeptype = deeptype
 builtins.Default = Default
 builtins.configIsToday = configIsToday
 builtins.typeName = typeName
+builtins.repeatableRepr = repeatableRepr
 builtins.safeTypeName = safeTypeName
 builtins.histogramDict = histogramDict

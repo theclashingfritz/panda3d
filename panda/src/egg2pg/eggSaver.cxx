@@ -52,6 +52,7 @@
 #include "modelNode.h"
 #include "animBundleNode.h"
 #include "animChannelMatrixXfmTable.h"
+#include "characterJointEffect.h"
 #include "characterJoint.h"
 #include "character.h"
 #include "string_utils.h"
@@ -133,37 +134,51 @@ add_subgraph(PandaNode *root) {
  * determining what kind of node it is.
  */
 void EggSaver::
-convert_node(const WorkingNodePath &node_path, EggGroupNode *egg_parent,
-             bool has_decal, CharacterJointMap *joint_map) {
+convert_node(const WorkingNodePath &node_path, EggGroupNode *egg_parent, bool has_decal, CharacterJointMap *joint_map, bool generic_groups) {
   PandaNode *node = node_path.node();
+    
   if (node->is_geom_node()) {
+    //nout << "Converting Geom Node: " << node->get_name() << "\n";
     convert_geom_node(DCAST(GeomNode, node), node_path, egg_parent, has_decal, joint_map);
 
   } else if (node->is_of_type(LODNode::get_class_type())) {
+    //nout << "Converting LOD Node: " << node->get_name() << "\n";
     convert_lod_node(DCAST(LODNode, node), node_path, egg_parent, has_decal, joint_map);
 
   } else if (node->is_of_type(SequenceNode::get_class_type())) {
+    //nout << "Converting Sequence Node: " << node->get_name() << "\n";
     convert_sequence_node(DCAST(SequenceNode, node), node_path, egg_parent, has_decal, joint_map);
 
   } else if (node->is_of_type(SwitchNode::get_class_type())) {
+    //nout << "Converting Switch Node: " << node->get_name() << "\n";
     convert_switch_node(DCAST(SwitchNode, node), node_path, egg_parent, has_decal, joint_map);
 
   } else if (node->is_of_type(CollisionNode::get_class_type())) {
+    //nout << "Converting Collision Node: " << node->get_name() << "\n";
     convert_collision_node(DCAST(CollisionNode, node), node_path, egg_parent, has_decal, joint_map);
 
   } else if (node->is_of_type(AnimBundleNode::get_class_type())) {
+    //nout << "Converting Animation Node: " << node->get_name() << "\n";
     convert_anim_node(DCAST(AnimBundleNode, node), node_path, egg_parent, has_decal);
 
   } else if (node->is_of_type(Character::get_class_type())) {
+    //nout << "Converting Character Node: " << node->get_name() << "\n";
     convert_character_node(DCAST(Character, node), node_path, egg_parent, has_decal);
 
   } else {
     // Just a generic node.
-    EggGroup *egg_group = new EggGroup(node->get_name());
-    egg_parent->add_child(egg_group);
-    apply_node_properties(egg_group, node);
+    EggGroup *egg_group = nullptr;
+    if (generic_groups) {
+        nout << "Converting Generic Node: " << node->get_name() << "\n";
+        egg_group = new EggGroup(node->get_name());
+        egg_parent->add_child(egg_group);
+        apply_node_properties(egg_group, node);
+    } else {
+        egg_group = (EggGroup *)egg_parent;
+    }
+    
 
-    recurse_nodes(node_path, egg_group, has_decal, joint_map);
+    recurse_nodes(node_path, egg_group, has_decal, joint_map, generic_groups);
   }
 }
 
@@ -344,7 +359,7 @@ convert_anim_node(AnimBundleNode *node, const WorkingNodePath &node_path,
  * structure.
  */
 void EggSaver::
-convert_character_bundle(PartGroup *bundleNode, EggGroupNode *egg_parent, CharacterJointMap *joint_map) {
+convert_character_bundle(Character *node, const WorkingNodePath &node_path, PartGroup *bundleNode, EggGroupNode *egg_parent, CharacterJointMap *joint_map, bool has_decal) {
   int num_children = bundleNode->get_num_children();
 
   EggGroupNode *joint_group = egg_parent;
@@ -357,6 +372,18 @@ convert_character_bundle(PartGroup *bundleNode, EggGroupNode *egg_parent, Charac
     EggGroup *joint = new EggGroup(bundleNode->get_name());
     joint->add_matrix4(transformd);
     joint->set_group_type(EggGroup::GT_joint);
+    
+    // Is this joint exposed?
+    NodePathCollection coll = character_joint->get_net_transforms();
+    for (size_t i = 0; i < coll.size(); ++i) {
+        const NodePath &np = coll[i];
+        if (np.get_name() == bundleNode->get_name() && np.node()->is_of_type(ModelNode::get_class_type())) {
+            nout << "Setting exposed joint to DCS type net: " << np.get_name() << "\n";
+            joint->set_dcs_type(EggGroup::DC_net);
+            break;
+        }
+    }
+
     joint_group = joint;
     egg_parent->add_child(joint_group);
     if (joint_map != nullptr) {
@@ -370,12 +397,23 @@ convert_character_bundle(PartGroup *bundleNode, EggGroupNode *egg_parent, Charac
       }
     }
   }
-
-  for (int i = 0; i < num_children ; i++) {
-    PartGroup *partGroup= bundleNode->get_child(i);
-    convert_character_bundle(partGroup, joint_group, joint_map);
+  
+  int num_node_children = node->get_num_children();
+  for (int i = 0; i < num_node_children; i++) {
+    PandaNode *child = node->get_child(i);
+    //nout << "Bundle Child: " << child->get_name() << " Bundle Node: " << bundleNode->get_name() << "\n";
+    if (child->get_name() == bundleNode->get_name()) {
+        nout << "Converting Bundle Child: " << child->get_name() << "\n";
+        convert_node(WorkingNodePath(node_path, child), joint_group, has_decal, false);
+        break;
+    }
   }
 
+  for (int i = 0; i < num_children ; i++) {
+    PartGroup *partGroup = bundleNode->get_child(i);
+    //nout << "Converting Part Bundle: " << partGroup->get_name() << "\n";
+    convert_character_bundle(node, node_path, partGroup, joint_group, joint_map, has_decal);
+  }
 }
 
 /**
@@ -396,14 +434,31 @@ convert_character_node(Character *node, const WorkingNodePath &node_path,
   apply_node_properties(egg_group, node);
 
   CharacterJointMap joint_map;
-  recurse_nodes(node_path, egg_group, has_decal, &joint_map);
-
-  // turn it into a switch.. egg_group->set_switch_flag(true);
-
+  
+  int num_children = node->get_num_children();
   int num_bundles = node->get_num_bundles();
+  
   for (int i = 0; i < num_bundles; ++i) {
     PartBundle *bundle = node->get_bundle(i);
-    convert_character_bundle(bundle, egg_group, &joint_map);
+    nout << "Converting Root Part Bundle: " << bundle->get_name() << "\n";
+    convert_character_bundle(node, node_path, bundle, egg_group, &joint_map, has_decal);
+  }
+  
+  for (int i = 0; i < num_children; i++) {
+    PandaNode *child = node->get_child(i);
+    //nout << "Converting Child: " << child->get_name() << "\n";
+        
+    WorkingNodePath work_path = WorkingNodePath(node_path, child);
+    
+    // Is this a ModelNode that represents an exposed joint?  If so, skip it,
+    // as we took care of it when building the joint hierarchy.
+    if (work_path.node()->get_type() == ModelNode::get_class_type()) {
+      ModelNode *model_node = (ModelNode *)work_path.node();
+      if (model_node->get_preserve_transform() == ModelNode::PT_net && model_node->has_effect(CharacterJointEffect::get_class_type())) {
+        continue;
+      }
+    }
+    convert_node(work_path, egg_parent, has_decal, &joint_map);
   }
 }
 
@@ -639,8 +694,7 @@ convert_collision_node(CollisionNode *node, const WorkingNodePath &node_path,
  * Converts a GeomNode to the corresponding egg structures.
  */
 void EggSaver::
-convert_geom_node(GeomNode *node, const WorkingNodePath &node_path,
-                  EggGroupNode *egg_parent, bool has_decal, CharacterJointMap *joint_map) {
+convert_geom_node(GeomNode *node, const WorkingNodePath &node_path, EggGroupNode *egg_parent, bool has_decal, CharacterJointMap *joint_map) {
   PT(EggGroup) egg_group = new EggGroup(node->get_name());
   bool fancy_attributes = apply_node_properties(egg_group, node);
 
@@ -693,7 +747,66 @@ convert_geom_node(GeomNode *node, const WorkingNodePath &node_path,
                         net_mat, egg_parent, joint_map);
     }
   }
+  
+  recurse_nodes(node_path, egg_parent, has_decal, joint_map);
+}
 
+
+void EggSaver::
+convert_inline_geom_node(GeomNode *node, const WorkingNodePath &node_path, EggGroupNode *egg_parent, bool has_decal, CharacterJointMap *joint_map) {
+  PT(EggGroup) egg_group = new EggGroup("GeomNode");
+  bool fancy_attributes = apply_node_properties(egg_group, node);
+
+  if (node->get_effects()->has_decal()) {
+    has_decal = true;
+  }
+
+  if (has_decal) {
+    egg_group->set_decal_flag(true);
+  }
+
+  if (fancy_attributes || has_decal || !node->get_name().empty()) {
+    // If we have any fancy attributes on the node, or if we're making decal
+    // geometry, we have to make a special node to hold the geometry (normally
+    // it would just appear within its parent).
+    egg_parent->add_child(egg_group.p());
+    egg_parent = egg_group;
+  }
+
+  NodePath np = node_path.get_node_path();
+  CPT(RenderState) net_state = np.get_net_state();
+  CPT(TransformState) net_transform = np.get_net_transform();
+  LMatrix4 net_mat = net_transform->get_mat();
+  LMatrix4 inv = LCAST(PN_stdfloat, egg_parent->get_vertex_frame_inv());
+  net_mat = net_mat * inv;
+
+  // Now get out all the various kinds of geometry.
+  int num_geoms = node->get_num_geoms();
+  for (int i = 0; i < num_geoms; ++i) {
+    CPT(RenderState) geom_state = node->get_geom_state(i);
+    CPT(RenderState) geom_net_state = net_state->compose(geom_state);
+
+    // If there is only one Geom, and the node has no state, apply the state
+    // attributes from the Geom to the group instead, so that we don't end up
+    // duplicating it for a lot of primitives.
+    if (num_geoms == 1 && node->get_num_children() == 0 && egg_parent == egg_group &&
+        !geom_state->is_empty() && node->get_state()->is_empty()) {
+      apply_state_properties(egg_group, geom_state);
+      geom_state = RenderState::make_empty();
+    }
+
+    const Geom *geom = node->get_geom(i);
+    int num_primitives = geom->get_num_primitives();
+    for (int j = 0; j < num_primitives; ++j) {
+      const GeomPrimitive *primitive = geom->get_primitive(j);
+      CPT(GeomPrimitive) simple = primitive->decompose();
+      CPT(GeomVertexData) vdata = geom->get_vertex_data();
+      // vdata = vdata->animate_vertices(true, Thread::get_current_thread());
+      convert_primitive(vdata, simple, geom_state, geom_net_state,
+                        net_mat, egg_parent, joint_map);
+    }
+  }
+  
   recurse_nodes(node_path, egg_parent, has_decal, joint_map);
 }
 
@@ -905,13 +1018,13 @@ convert_primitive(const GeomVertexData *vertex_data,
  */
 void EggSaver::
 recurse_nodes(const WorkingNodePath &node_path, EggGroupNode *egg_parent,
-              bool has_decal, CharacterJointMap *joint_map) {
+              bool has_decal, CharacterJointMap *joint_map, bool generic_groups) {
   PandaNode *node = node_path.node();
   int num_children = node->get_num_children();
 
   for (int i = 0; i < num_children; i++) {
     PandaNode *child = node->get_child(i);
-    convert_node(WorkingNodePath(node_path, child), egg_parent, has_decal, joint_map);
+    convert_node(WorkingNodePath(node_path, child), egg_parent, has_decal, joint_map, generic_groups);
   }
 }
 
